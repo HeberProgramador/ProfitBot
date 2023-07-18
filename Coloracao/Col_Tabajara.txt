@@ -1,0 +1,28 @@
+
+
+var
+SinalCompra : boolean;
+SinalVenda : boolean;
+ValorMACD : float;
+Media21 : float;
+Media30 : float;
+Media90 : float;
+Condicao1 : boolean;
+Condicao2 : boolean;
+
+
+Inicio
+   SinalCompra := (Fechamento > Fechamento[1]) e (Fechamento > Media(19,Close)) e (Media(19,Close) > Media(19,Close)[1]);
+   SinalVenda := (Fechamento < Fechamento[1]) e (Fechamento < Media(19,Close)) e (Media(19,Close) < Media(19,Close)[1]);
+   ValorMACD := MACD(130,16,12)|1|;
+   Media21 := (Media(21,close));
+   Media30 := (Media(30,close));
+   Media90 := (Media(90,close));
+   Condicao1 := (Media21 > Media30) e (Media(90,close) > Media(90,close)[1]);
+   Condicao2 := (Media21 < Media30) e (Media(90,close) < Media(90,close)[1]);
+
+   Se ((Condicao1 = Verdadeiro) e (ValorMACD > 0) e (SinalCompra = Verdadeiro) e (time < 1700) ) então
+      PaintBar(clVerde)
+   Senão Se ((Condicao2 = Verdadeiro) e (ValorMACD < 0) e (SinalVenda = Verdadeiro) e (time < 1700) ) então
+      PaintBar(clVermelho);
+Fim;

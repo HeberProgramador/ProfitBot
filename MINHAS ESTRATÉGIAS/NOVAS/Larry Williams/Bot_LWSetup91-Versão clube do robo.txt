@@ -1,0 +1,47 @@
+// Ele testou na vale no 25renko
+
+input
+QtdMinContratos(1);
+var
+MediaMovel, vlrStopC, vlrStopV : real;
+sinalC, sinalV : boolean;
+
+begin
+    //CARREGAR O INDICADOR
+    MediaMovel := MediaExp(9,close);
+
+    //SINAIS DE ENTRADA
+    sinalC := (MediaMovel[2] > MediaMovel[1]) e (MediaMovel[1] < MediaMovel[0]);
+    sinalV := (MediaMovel[2] < MediaMovel[1]) e (MediaMovel[1] > MediaMovel[0]);
+
+    //EXECUÇÃO DA ENTRADA
+    se (not HasPosition) e sinalC entao 
+    begin
+      BuyStop(High+MinPriceIncrement, High+MinPriceIncrement+(60*MinPriceIncrement), QtdMinContratos)
+    end
+    se (sinalV) e (not HasPosition) entao SellShortStop(Low-MinPriceIncrement, Low-MinPriceIncrement-(60*MinPriceIncrement), QtdMinContratos);
+    
+    //EXECUÇÃO DA SAÍDA
+    vlrStopC := minima[0];
+    vlrStopV := maxima[0];
+    
+    se (IsBought) entao
+    inicio
+        
+        SellToCoverStop(vlrStopC,vlrStopC-(60*MinPriceIncrement));// Stop Loss
+        
+        //EXECUÇÃO DE SAÍDA EM GAP
+        se (fechamento < vlrStopC) entao ClosePosition; //proteção contra gap
+    fim
+    senao se (IsSold) entao
+    inicio
+        
+        BuyToCoverStop(vlrStopV,vlrStopV+(60*MinPriceIncrement));// Stop Loss
+
+        //EXECUÇÃO DE SAÍDA EM GAP
+        se (fechamento > vlrStopV) entao ClosePosition; //proteção contra gap
+    fim;
+
+    //PLOTAGEM
+
+end;

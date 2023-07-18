@@ -1,0 +1,14 @@
+var
+SinalCompra, SinalVenda, TilsonCompra, TilsonVenda : boolean;
+
+Inicio
+   TilsonCompra := (Fechamento > Fechamento[1]) e (Fechamento > TILSON(0.45,9)) e (TILSON(0.45,9) > TILSON(0.45,9)[3]);
+   TilsonVenda := (Fechamento < Fechamento[1]) e (Fechamento < TILSON(0.45,9)) e (TILSON(0.45,9) < TILSON(0.45,9)[3]);
+   SinalCompra := (TilsonCompra = Verdadeiro);
+   SinalVenda := (TilsonVenda = Verdadeiro);
+
+  Se (SinalCompra = Verdadeiro) e (time > 1003) e (time < 1700)  então
+    PaintBar(clVerde)
+  Senão Se (SinalVenda = Verdadeiro) e (time > 1003) e (time < 1700) então
+    PaintBar(clMarrom);
+Fim;

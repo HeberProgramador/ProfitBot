@@ -1,0 +1,82 @@
+//A2 A banda de Bollinger superior que está a 2 desvios padrão da linha X (MMA20)
+//A1 A linha superior da banda de Bollinger que é 1 desvio padrão da linha X (MMA20)
+//X É a MMA20 períodos do gráfico, serve como o centro das bandas de Bollinger duplas
+//B1 A linha inferior da Banda Bollinger que é 1 desvio padrão da linha X (MMA20)
+//B2 A banda de Bollinger inferior que está a 2 desvios padrão da linha 
+//A Buy Zone (zona de compra) é entre as linhas A1 e A2
+//A Zona Neutra 1 é entre as linhas A2 e X
+//A Zona Neutra 2 é entre as linhas X e B1
+//A Sell Zone (Zona de Venda) é entre as linhas B1 e B2
+
+
+Input
+DesvioUm(1);
+DesvioDois(2);
+PeriodoUm(20);
+PeriodoDois(21);
+Contratos(1);
+StopLoss(250);
+
+Var
+BandaSuperiorA1, BandaSuperiorA2, BandaInferiorB1, BandaInferiorB2, MediaAritmeticaX, StopC, AlvoC, StopV, AlvoV : Float;
+sinalC, sinalV : boolean;
+Inicio
+    //CARREGAR O INDICADOR
+    BandaSuperiorA2 := BollingerBands(DesvioDois, PeriodoDois, 0)|0|;
+    BandaSuperiorA1 := BollingerBands(DesvioUm, PeriodoUm, 0)|0|;
+    MediaAritmeticaX := Media(Periodo, Close);
+    BandaInferiorB1 := BollingerBands(DesvioUm, PeriodoUm, 0)|1|;
+    BandaInferiorB2 := BollingerBands(DesvioDois, PeriodoDois, 0)|1|;
+
+    
+
+    //SINAIS DE ENTRADA
+    sinalC := (fechamento > BandaSuperiorA1);
+    sinalV := (fechamento < BandaInferiorA1);
+
+    //SINAIS DE STOP
+    stopC := (fechamento < BandaSuperiorA1);
+    stopV := (fechamento > BandaInferiorA1);
+
+    //Stop em GAP
+    StopLossCompra := (BuyPrice - fechamento);
+    StopLossVenda := (fechamento - SellPrice);
+
+    //EXECUÇÃO DE ENTRADA
+    se (sinalC) e (not HasPosition) entao BuyAtMarket
+    senao se (sinalV) e (not HasPosition) entao SellShortAtMarket;
+
+    //EXECUÇÃO DE SAÍDA
+    se (IsBought)  entao 
+    begin
+      se (stopC) entao
+      begin
+        SellToCoverAtMarket(BuyPosition); //Gain e loss JUNTOS
+      end;
+
+      //PROTEÇÃO EM GAP
+      se (StopLossCompra > StopLoss) entao ClosePosition; //proteção contra gap
+    end;
+    se (IsSold)
+    begin
+      se (stopV) entao 
+      begin
+        BuyToCoverAtMarket(SellPosition);
+      end;
+      //PROTEÇÃO EM GAP
+      se (StopLossVenda > StopLoss) entao ClosePosition; //proteção contra gap
+
+    end;
+    //COLORAÇÃO
+    se (fechamento > BandaSuperiorA1) entao cor := cllime
+    senao se (fechamento < BandaInferiorA1)entao cor := clred
+    senao cor := clwhite;
+    se (cor[1] = cllime) e (not stopC) entao cor:=cllime;
+    se (cor[1] = clred) e (not stopV) entao cor:=clred;
+    PaintBar(cor);
+
+    //SINALIZAÇÃO DAS ENTRADAS
+    se sinalC entao PlotText("C", cllime,0,15);
+    se sinalV entao PlotText("V", clred,2,10);
+
+Fim;
